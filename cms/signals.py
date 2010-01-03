@@ -5,6 +5,7 @@ from cms.models import Page, Title
 from cms.models import CMSPlugin        
 from cms.utils.moderator import page_changed
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.contenttypes.models import ContentType
 from django.dispatch import Signal
 
 # fired after page location is changed - is moved from one node to other
@@ -19,7 +20,8 @@ post_publish = Signal(providing_args=["instance"])
         
 def update_plugin_positions(**kwargs):
     plugin = kwargs['instance']
-    plugins = CMSPlugin.objects.filter(page=plugin.page, language=plugin.language, placeholder=plugin.placeholder).order_by("position")
+    ctype = ContentType.objects.get_for_model(plugin.content_object.__class__)
+    plugins = CMSPlugin.objects.filter(content_type=ctype, object_id=plugin.content_object.pk, language=plugin.language, placeholder=plugin.placeholder).order_by("position")
     last = 0
     for p in plugins:
         if p.position != last:

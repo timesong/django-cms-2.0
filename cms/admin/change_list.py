@@ -1,5 +1,7 @@
+from django.contrib import admin
 from django.conf import settings
 from django.contrib.sites.models import Site
+
 from django.contrib.admin.views.main import ChangeList, ALL_VAR, IS_POPUP_VAR,\
     ORDER_TYPE_VAR, ORDER_VAR, SEARCH_VAR
 from cms.models import Title, PagePermission, Page, PageModerator
@@ -12,6 +14,31 @@ from cms.models.moderatormodels import MASK_PAGE, MASK_CHILDREN,\
 
 
 COPY_VAR = "copy"
+
+# imports from django/contrib/admin/options.py remove usused later
+from django import forms, template
+from django.forms.formsets import all_valid
+from django.forms.models import modelform_factory, modelformset_factory, inlineformset_factory
+from django.forms.models import BaseInlineFormSet
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.admin import widgets
+from django.contrib.admin import helpers
+from django.contrib.admin.util import unquote, flatten_fieldsets, get_deleted_objects, model_ngettext, model_format_dict
+from django.core.exceptions import PermissionDenied
+from django.db import models, transaction
+from django.db.models.fields import BLANK_CHOICE_DASH
+from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render_to_response
+from django.utils.datastructures import SortedDict
+from django.utils.functional import update_wrapper
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
+from django.utils.functional import curry
+from django.utils.text import capfirst, get_text_list
+from django.utils.translation import ugettext as _
+from django.utils.translation import ungettext, ugettext_lazy
+from django.utils.encoding import force_unicode
+
 
 class CMSChangeList(ChangeList):
     real_queryset = False
@@ -185,5 +212,4 @@ class CMSChangeList(ChangeList):
         self.has_access_to_multiple_sites = len(self.sites) > 1
     
     def current_site(self):
-        return self._current_site
-    
+        return self._current_site        

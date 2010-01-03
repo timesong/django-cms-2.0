@@ -1,3 +1,7 @@
+from django.shortcuts import get_object_or_404
+from cms.models import Page, Title, CMSPlugin
+from django.contrib.contenttypes.models import ContentType
+
 from django.shortcuts import get_object_or_404, render_to_response
 from django.http import HttpResponse, Http404, HttpResponseForbidden, HttpResponseBadRequest
 from django.contrib.admin.views.decorators import staff_member_required
@@ -14,11 +18,15 @@ from cms.utils.admin import render_admin_menu_item
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from cms.utils import get_language_from_request
 
-def save_all_plugins(request, page, excludes=None):
-    if not page.has_change_permission(request):
+def save_all_plugins(request, content_object, excludes=None):
+    
+    if hasattr(content_object, 'has_change_permission') and not content_object.has_change_permission(request):
         raise Http404
     
-    for plugin in CMSPlugin.objects.filter(page=page):
+    ctype = ContentType.objects.get_for_model(content_object.__class__)
+    object_id = content_object.pk
+    
+    for plugin in CMSPlugin.objects.filter(content_type=ctype, object_id=object_id):
         if excludes:
             if plugin.pk in excludes:
                 continue
@@ -36,11 +44,12 @@ def revert_plugins(request, version_id, obj):
     plugin_list = []
     titles = []
     others = []
-    page = obj
+    content_object = obj
+    ctype = ContentType.objects.get_for_model(content_object.__class__)
+    object_id = content_object.pk    
     lang = get_language_from_request(request)
     for rev in revs:
         obj = rev.object
-        
         if obj.__class__ == CMSPlugin:
             cms_plugin_list.append(obj)
         elif hasattr(obj, 'cmsplugin_ptr_id'):
@@ -53,11 +62,11 @@ def revert_plugins(request, version_id, obj):
                 titles.append(obj) 
         else:
             others.append(rev)
-    if not page.has_change_permission(request):
+    if hasattr(content_object, 'has_change_permission') and not content_object.has_change_permission(request):
         raise Http404
-    current_plugins = list(CMSPlugin.objects.filter(page=page))
+    current_plugins = list(CMSPlugin.objects.filter(content_type=ctype, object_id=object_id))
     for plugin in cms_plugin_list:
-        plugin.page = page
+        plugin.content_object = content_object
         plugin.save(no_signals=True)
     for plugin in cms_plugin_list:
         plugin.save()
@@ -69,11 +78,11 @@ def revert_plugins(request, version_id, obj):
             if old.pk == plugin.pk:
                 current_plugins.remove(old)
     for title in titles:
-        title.page = page
+        title.page = content_object 
         try:
             title.save()
         except:
-            title.pk = Title.objects.get(page=page, language=title.language).pk
+            title.pk = Title.objects.get(page=obj, language=title.language).pk
             title.save()
     for other in others:
         other.object.save()

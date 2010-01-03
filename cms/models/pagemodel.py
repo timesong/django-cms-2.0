@@ -16,6 +16,7 @@ from cms.models.managers import PageManager, PagePermissionsPermissionManager
 from cms.utils.page import get_available_slug, check_title_slugs
 from cms.exceptions import NoHomeFound
 from cms.utils.helpers import reversion_register
+from django.contrib.contenttypes import generic
 from cms.utils.i18n import get_fallback_languages
 
 class Page(MpttPublisher):
@@ -60,6 +61,8 @@ class Page(MpttPublisher):
     
     login_required = models.BooleanField(_("login required"),default=False)
     menu_login_required = models.BooleanField(_("menu login required"),default=False, help_text=_("only show this page in the menu if the user is logged in"))
+
+    cms_plugins = generic.GenericRelation('cms.CMSPlugin')
     
     # Managers
     objects = PageManager()
@@ -125,7 +128,7 @@ class Page(MpttPublisher):
         for page in descendants:
            
             titles = list(page.title_set.all())
-            plugins = list(page.cmsplugin_set.all().order_by('tree_id', '-rght'))
+            plugins = list(page.cms_plugins.all().order_by('tree_id', '-rght'))
             origin_id = page.id
             page.old_pk = page.pk
             page.pk = None
@@ -209,7 +212,7 @@ class Page(MpttPublisher):
                 if plugin:
                     plugin.pk = p.pk
                     plugin.id = p.pk
-                    plugin.page = page
+                    plugin.content_object = page
                     plugin.tree_id = p.tree_id
                     plugin.lft = p.lft
                     plugin.rght = p.rght
@@ -694,5 +697,9 @@ class Page(MpttPublisher):
         self._moderation_value_cache_for_user_id = user
             
         return moderation_value 
+
+    def delete(self):
+        self.cms_plugins.all().delete()
+        super(Page, self).delete()
         
-reversion_register(Page, follow=["title_set", "cmsplugin_set", "pagepermission_set"])
+reversion_register(Page, follow=["title_set", "cms_plugins", "pagepermission_set"])

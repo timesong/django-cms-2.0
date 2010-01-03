@@ -3,6 +3,7 @@ from django import template
 from django.core.cache import cache
 from django.core.mail import send_mail, mail_managers
 from django.contrib.sites.models import Site
+from django.contrib.contenttypes.models import ContentType
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings as django_settings
@@ -20,6 +21,7 @@ from django.template.loader import render_to_string
 from cms.plugin_pool import plugin_pool
 from django.template.defaultfilters import title
 
+page_contenttype = ContentType.objects.get_for_model(Page)
 
 register = template.Library()
 
@@ -520,6 +522,7 @@ class PlaceholderNode(template.Node):
         page = request.current_page
         if page == "dummy":
             return ""
+
         return render_plugins_for_context(self.name, page, context, self.theme)
  
     def __repr__(self):
