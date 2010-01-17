@@ -104,9 +104,6 @@ class ApplicationRegexUrlResolver(PageRegexURLResolver):
         # assign page_id to resolver, so he knows on which page he was assigned
         self.page_id = title.page_id
         
-        if not namespace and 'cms.middleware.multilingual.MultilingualURLMiddleware' in settings.MIDDLEWARE_CLASSES:
-            language = title.language
-            namespace = language
         super(ApplicationRegexUrlResolver, self).__init__(regex, urlconf_name, default_kwargs, app_name, namespace)
     
                 
