@@ -64,6 +64,9 @@ def get_language_from_request(request, current_page=None):
     """
     Return the most obvious language according the request
     """
+    if settings.CMS_DBGETTEXT: 
+        return get_default_language()
+
     language = request.REQUEST.get('language', None)
     
     if language:
@@ -199,7 +202,6 @@ def find_children(target, pages, levels=100, active_levels=0, ancestors=None, se
     if target.pk in ancestors:
         target.ancestor = True
     if target.pk == selected_pk:
-        target.selected = True
         levels = active_levels
     if (levels <= 0 or (target.soft_root and soft_roots)) and not target.pk in ancestors:
         return

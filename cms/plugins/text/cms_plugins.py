@@ -35,7 +35,6 @@ class TextPlugin(CMSPluginBase):
         # We avoid mutating the Form declared above by subclassing
         class TextPluginForm(self.form):
             pass
-
         widget = self.get_editor_widget(request, plugins)
         TextPluginForm.declared_fields["body"] = CharField(widget=widget, required=False)
         return TextPluginForm
@@ -50,11 +49,18 @@ class TextPlugin(CMSPluginBase):
         return super(TextPlugin, self).get_form(request, obj, **kwargs)
 
     def render(self, context, instance, placeholder):
+        if settings.CMS_DBGETTEXT:
+            from dbgettext.parser import parsed_gettext
+            instance.body = parsed_gettext(instance, 'body')
         context.update({
             'body':plugin_tags_to_user_html(instance.body, context, placeholder), 
             'placeholder':placeholder,
             'object':instance
         })
         return context
+    
+    def save_model(self, request, obj, form, change):
+        obj.clean_plugins()
+        super(TextPlugin, self).save_model(request, obj, form, change)
 
 plugin_pool.register_plugin(TextPlugin)
