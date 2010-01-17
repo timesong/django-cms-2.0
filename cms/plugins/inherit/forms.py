@@ -1,6 +1,6 @@
 from django.forms.models import ModelForm
 from django.utils.translation import ugettext_lazy as _
-from cms.plugins.link.models import Link
+#from cms.plugins.link.models import Link
 from django import forms
 from cms.models import Page
 from django.forms.util import ErrorList
@@ -19,6 +19,6 @@ class InheritForm(ModelForm):
             self._errors['from_page'] = ErrorList([_("Language or Page must be filled out")])
         return cleaned_data
     
-    class Meta:
-        model = Link
-        exclude = ('page', 'position', 'placeholder', 'language', 'plugin_type')
+#    class Meta:
+#        model = Link
+#        exclude = ('page', 'position', 'placeholder', 'language', 'plugin_type')
